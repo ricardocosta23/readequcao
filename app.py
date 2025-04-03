@@ -331,7 +331,7 @@ def submit_readequacao():
                     
                     # Format the payload according to the Monday.com API requirements
                     # The query uses the $file variable and specifies the column_id and item_id
-                    query = f'mutation add_file($file: File!) {{add_file_to_column (item_id: {item_id}, column_id: "file_mkp3rd8p", file: $file) {{id}}}}'
+                    query = f'mutation add_file($file: File!) {{add_file_to_column (item_id: {item_id}, column_id: "arquivos9__1", file: $file) {{id}}}}'
                     
                     payload = {
                         'query': query,
