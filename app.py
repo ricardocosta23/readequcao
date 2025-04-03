@@ -284,7 +284,7 @@ def submit_readequacao():
         
         # If no changes found, note that in the summary
         if not changes_found:
-            summary_text += "Nenhuma alteração foi realizada."
+            summary_text += "Nenhuma alteração em data ou destino foi realizada."
         
         # Get the additional messages from the textarea field
         mensagens = request.form.get('mensagens', '').strip()
@@ -294,7 +294,7 @@ def submit_readequacao():
         
         # Add the mensagens if not empty
         if mensagens:
-            final_text += "\n\n--- Mensagens adicionais ---\n" + mensagens
+            final_text += "\n\nMensagens do comercial:\n" + mensagens
         
         # Add file information if a file was provided
         if file and allowed_file(file.filename):
