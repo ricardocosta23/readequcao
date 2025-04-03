@@ -321,9 +321,8 @@ def submit_readequacao():
                 # Use the same API_KEY that's already defined at the top of the file
                 try:
                     # Save file temporarily
-                    temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp')
-                    os.makedirs(temp_dir, exist_ok=True)
-                    temp_path = os.path.join(temp_dir, filename)
+                    
+                    temp_path = os.path.join('/tmp', filename)
                     file.save(temp_path)
                     print(f"File saved to: {temp_path}")
                     # First upload the file to Monday.com's file storage
