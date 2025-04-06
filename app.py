@@ -424,5 +424,171 @@ def page_not_found(error):
 def internal_server_error(error):
     return render_template('error.html', error="Erro interno do servidor"), 500
 
+@app.route('/datacadneg', methods=['POST', 'GET'])
+def datacadneg():
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Monday.com webhooks may send a challenge for verification
+            if 'challenge' in data:
+                return jsonify({'challenge': data['challenge']})
+            
+            # Get the pulse_id (item_id) from the webhook data
+            event = data.get('event', {})
+            pulse_id = event.get('pulseId')
+            
+            if not pulse_id:
+                logger.error("No pulse_id found in webhook data")
+                return jsonify({"error": "No pulse_id found in webhook data"}), 400
+            
+            logger.info(f"Received webhook for item ID: {pulse_id}")
+            
+            # Query Monday.com API to get specifically the dup__of_avisos_____1 column value (MirrorValue type)
+            query = """
+            query ($item_id: [ID!]) {
+              items(ids: $item_id) {
+                column_values(ids: ["dup__of_avisos_____1"]) {
+                  id
+                  ... on MirrorValue {
+                    display_value
+                  }
+                }
+              }
+            }
+            """
+
+            variables = {"item_id": pulse_id}
+            
+            try:
+                # Get the data from Monday.com using variables
+                monday_response = get_monday_data(query, API_KEY, API_URL, variables)
+                
+                # Print the response for debugging
+                logger.info(f"Monday.com response for dup__of_avisos_____1: {json.dumps(monday_response, indent=2)}")
+                
+                items = monday_response.get('data', {}).get('items', [])
+                
+                if not items:
+                    error_msg = f"Item {pulse_id} not found on Monday.com. Verifique se o ID do item está correto e se você tem acesso a ele."
+                    logger.error(error_msg)
+                    return jsonify({"error": error_msg}), 404
+                
+                # Extract the date value from the dup__of_avisos_____1 column
+                date_value = None
+                column_values = items[0].get('column_values', [])
+                
+                if column_values:
+                    column = column_values[0]  # Deve ter apenas uma coluna, a dup__of_avisos_____1
+                    
+                    # Para MirrorValue, o valor está em display_value
+                    if column.get('display_value'):
+                        date_value = column.get('display_value')
+                        logger.info(f"Found date value in dup__of_avisos_____1 (display_value): {date_value}")
+                    # Verificações alternativas para compatibilidade
+                    elif column.get('text'):
+                        date_value = column.get('text')
+                        logger.info(f"Found date value in dup__of_avisos_____1 (text): {date_value}")
+                    elif column.get('value'):
+                        try:
+                            value_json = json.loads(column.get('value'))
+                            if 'date' in value_json:
+                                date_value = value_json['date']
+                                logger.info(f"Found date value in dup__of_avisos_____1 (value.date): {date_value}")
+                        except Exception as e:
+                            logger.error(f"Erro ao analisar valor JSON da coluna: {str(e)}")
+                
+                # Se não encontrou o valor, registre essa informação detalhada
+                if not date_value:
+                    logger.info(f"Valor da coluna dup__of_avisos_____1 não encontrado ou vazio para o item {pulse_id}")
+                    
+                    # Retorne uma resposta explicativa sem tentar buscar mais dados
+                    return jsonify({
+                        "message": "Webhook recebido e processado. A coluna 'dup__of_avisos_____1' está vazia, portanto não foi necessário atualizar a coluna 'date_mkpr7chx'.",
+                        "item_id": pulse_id,
+                        "status": "skipped"
+                    }), 200
+                
+                # Calculate the new date (one day before)
+                new_date = None
+                from utils.date_formatter import subtract_one_day
+                new_date = subtract_one_day(date_value)
+                
+                if not new_date:
+                    error_msg = f"Falha ao calcular nova data para o valor: {date_value}. Verifique se o formato da data é válido (YYYY-MM-DD)."
+                    logger.error(error_msg)
+                    return jsonify({"error": error_msg}), 400
+                
+                # Atualizar a coluna date_mkpr7chx diretamente usando uma mutação GraphQL
+                # Não usar o update_monday_item pois ele faz o duplo escape do JSON
+                mutation = """
+                mutation ($item_id: ID!, $board_id: ID!, $column_values: JSON!) {
+                  change_multiple_column_values (
+                    item_id: $item_id, 
+                    board_id: $board_id, 
+                    column_values: $column_values
+                  ) {
+                    id
+                  }
+                }
+                """
+                
+                # Preparar variáveis para a mutação
+                variables = {
+                    "item_id": pulse_id,
+                    "board_id": 7383259135,
+                    "column_values": json.dumps({"date_mkpr7chx": {"date": new_date}})
+                }
+                
+                try:
+                    # Fazer a chamada para a API do Monday.com
+                    monday_response = get_monday_data(mutation, API_KEY, API_URL, variables)
+                    
+                    # Log da resposta para depuração
+                    logger.info(f"Monday.com mutation response: {json.dumps(monday_response, indent=2)}")
+                    
+                    # Verificar se a atualização foi bem-sucedida
+                    if monday_response.get('data', {}).get('change_multiple_column_values', {}) is not None:
+                        success_msg = f"Item {pulse_id} atualizado com sucesso. Nova data: {new_date}"
+                        logger.info(success_msg)
+                        return jsonify({"success": True, "message": success_msg}), 200
+                    else:
+                        # Se houver erros específicos na resposta, incluí-los na mensagem
+                        error_details = ""
+                        if 'errors' in monday_response:
+                            for error in monday_response.get('errors', []):
+                                error_details += f" {error.get('message', '')}."
+                                
+                                # Verificar se há informações sobre a coluna específica
+                                if 'extensions' in error and 'error_data' in error['extensions']:
+                                    error_data = error['extensions']['error_data']
+                                    if 'column_id' in error_data:
+                                        error_details += f" Coluna problemática: {error_data['column_id']}."
+                        
+                        error_msg = f"Falha ao atualizar o item {pulse_id}.{error_details} Verifique se a coluna 'date_mkpr7chx' existe no quadro e se você tem permissões para atualizá-la."
+                        logger.error(error_msg)
+                        return jsonify({"error": error_msg}), 500
+                except Exception as e:
+                    error_msg = f"Erro ao atualizar o item no Monday.com: {str(e)}"
+                    logger.error(error_msg)
+                    return jsonify({"error": error_msg}), 500
+                
+            except Exception as e:
+                error_msg = f"Erro ao processar webhook: {str(e)}. Por favor, verifique os logs para mais detalhes."
+                logger.error(f"Error processing webhook: {str(e)}")
+                return jsonify({"error": error_msg}), 500
+                
+        except Exception as e:
+            error_msg = f"Erro ao analisar dados do webhook: {str(e)}. Verifique se o formato JSON está correto."
+            logger.error(f"Error parsing webhook data: {str(e)}")
+            return jsonify({"error": error_msg}), 400
+            
+    elif request.method == 'GET':
+        # Return a simple response for GET requests (testing purposes)
+        return jsonify({"message": "The datacadneg webhook endpoint is working. Use POST for webhook data."}), 200
+    
+    else:
+        abort(400)
+
 # App config values
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH  # Set the max file upload size
