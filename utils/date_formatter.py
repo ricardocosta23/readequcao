@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def formatar_data(data_value):
     """
@@ -45,3 +45,35 @@ def convert_date_to_monday_format(date_str):
         return None
     except (ValueError, TypeError):
         return None
+
+def subtract_one_day(date_value):
+    """
+    Subtracts one day from a date value from Monday.com
+    
+    Args:
+        date_value: Date value from Monday.com (could be a list, string or None)
+        
+    Returns:
+        str: Date string in YYYY-MM-DD format for Monday.com API, or None if invalid
+    """
+    if isinstance(date_value, list):
+        if date_value:
+            date_str = date_value[0]  # Get the first element of the list
+        else:
+            return None  # Return None if list is empty
+    elif isinstance(date_value, str):
+        date_str = date_value
+    else:
+        return None  # Return None if not list or string
+    
+    if date_str:
+        try:
+            # Parse the date string in the format it's returned from Monday.com
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            # Subtract one day
+            new_date = date_obj - timedelta(days=1)
+            # Return in the format needed for Monday.com API
+            return new_date.strftime('%Y-%m-%d')
+        except ValueError:
+            return None  # Return None if date format is incorrect
+    return None
