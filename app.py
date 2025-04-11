@@ -313,6 +313,42 @@ def submit_readequacao():
         if update_result:
             logger.info(f"Successfully updated item: {item_id}")
 
+            # Handle planilha file upload
+            planilha = request.files.get('planilha')
+            if planilha and allowed_file(planilha.filename):
+                filename = secure_filename(planilha.filename)
+                temp_path = os.path.join('/tmp', filename)
+                planilha.save(temp_path)
+                
+                headers = {"Authorization": API_KEY, 'API-version':'2023-10'}
+                url = "https://api.monday.com/v2/file"
+                query = f'mutation add_file($file: File!) {{add_file_to_column (item_id: {item_id}, column_id: "arquivos22__1", file: $file) {{id}}}}'
+                
+                payload = {
+                    'query': query,
+                    'variables': '{}'
+                }
+                map_json = '{"variables.file": ["variables.file"]}'
+                payload['map'] = map_json
+                
+                with open(temp_path, 'rb') as file_handle:
+                    file_content = file_handle.read()
+                    files = {
+                        'variables.file': (filename, file_content, 'application/octet-stream')
+                    }
+                
+                response = requests.post(url, headers=headers, data=payload, files=files)
+                
+                if response.ok:
+                    logger.info("Planilha uploaded successfully!")
+                    flash("Planilha anexada com sucesso!", "success")
+                else:
+                    logger.error(f"Planilha upload failed: {response.text}")
+                    flash("Upload da planilha falhou", "warning")
+                
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+
             # Handle file upload if file was provided
             if file and allowed_file(file.filename):
                 
@@ -592,3 +628,8 @@ def datacadneg():
 
 # App config values
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH  # Set the max file upload size
+
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
