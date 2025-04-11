@@ -1,4 +1,3 @@
-
 import os
 import logging
 from flask import Flask, request, abort, jsonify, render_template, url_for, redirect, flash
@@ -49,7 +48,7 @@ def readequacao():
     result = None
 
     if request.method == 'POST':
-        
+
         num_negocio = request.form.get('negocio')
         logger.info(f"Searching for business number: {num_negocio}")
 
@@ -100,7 +99,11 @@ def readequacao():
                 # Extract column values from the item
                 for column in item.get('column_values', []):
                     if column['id'] in column_ids:
-                        column_values[column['id']] = column.get('text') or column.get('value')
+                        # For dropdown columns, we need to check text first
+                        if column['id'] == 'lista_suspensa3__1':
+                            column_values[column['id']] = column.get('text')
+                        else:
+                            column_values[column['id']] = column.get('text') or column.get('value')
 
                 # Create result dictionary with column values
                 result = {
@@ -125,8 +128,8 @@ def readequacao():
                     "dup__of_op__o_3c__1": column_values.get('dup__of_op__o_3c__1'),
                     "text0__1": column_values.get('text0__1'),
                 }
-                         
-                
+
+
                 # Format date values for display
                 result['data__1'] = formatar_data(result['data__1'])
                 result['date3__1'] = formatar_data(result['date3__1'])
@@ -243,69 +246,84 @@ def submit_readequacao():
         # Generate a summary of changes for texto_longo_17__1 column
         summary_text = "Resumo das Mudanças:\n\n"
         changes_found = False
-        
+
         # Check for date changes
         original_data__1 = request.form.get('original_data__1')
         if novaDataEntregaAEREO and novaDataEntregaAEREO != "None" and novaDataEntregaAEREO != original_data__1:
             summary_text += f"- Data de entrega AÉREO foi alterada de {original_data__1 or '-'} para {novaDataEntregaAEREO}\n"
             changes_found = True
-            
+
         original_date9__1 = request.form.get('original_date9__1')
         if novaDataEntregaTERRESTRE and novaDataEntregaTERRESTRE != "None" and novaDataEntregaTERRESTRE != original_date9__1:
             summary_text += f"- Data de entrega TERRESTRE foi alterada de {original_date9__1 or '-'} para {novaDataEntregaTERRESTRE}\n"
             changes_found = True
-            
+
         original_date3__1 = request.form.get('original_date3__1')
         if novaDataEntregaCRIACAO and novaDataEntregaCRIACAO != "None" and novaDataEntregaCRIACAO != original_date3__1:
             summary_text += f"- Data de entrega CRIAÇÃO foi alterada de {original_date3__1 or '-'} para {novaDataEntregaCRIACAO}\n"
             changes_found = True
-            
+
         original_date7__1 = request.form.get('original_date7__1')
         if novaDataEntregaSALES and novaDataEntregaSALES != "None" and novaDataEntregaSALES != original_date7__1:
             summary_text += f"- Data de entrega SALES foi alterada de {original_date7__1 or '-'} para {novaDataEntregaSALES}\n"
             changes_found = True
-            
+
         # Check for option changes
         original_texto16__1 = request.form.get('original_texto16__1')
         if novaOpcao1A and novaOpcao1A != "None" and novaOpcao1A != original_texto16__1:
             summary_text += f"- Opção 1A foi alterada de {original_texto16__1 or '-'} para {novaOpcao1A}\n"
             changes_found = True
-            
+
+        original_dup__of_op__o_3c9__1 = request.form.get('original_dup__of_op__o_3c9__1')
+        if novaOpcao4A and novaOpcao4A != "None" and novaOpcao4A != original_dup__of_op__o_3c9__1:
+            summary_text += f"- Opção 4A foi alterada de {original_dup__of_op__o_3c9__1 or '-'} para {novaOpcao4A}\n"
+            changes_found = True
+
+        original_dup__of_op__o_3c4__1 = request.form.get('original_dup__of_op__o_3c4__1')
+        if novaOpcao4B and novaOpcao4B != "None" and novaOpcao4B != original_dup__of_op__o_3c4__1:
+            summary_text += f"- Opção 4B foi alterada de {original_dup__of_op__o_3c4__1 or '-'} para {novaOpcao4B}\n"
+            changes_found = True
+
+        original_dup__of_op__o_3c__1 = request.form.get('original_dup__of_op__o_3c__1')
+        if novaOpcao4C and novaOpcao4C != "None" and novaOpcao4C != original_dup__of_op__o_3c__1:
+            summary_text += f"- Opção 4C foi alterada de {original_dup__of_op__o_3c__1 or '-'} para {novaOpcao4C}\n"
+            changes_found = True
+
         # Add more options following the same pattern
         original_dup__of_op__o_1c0__1 = request.form.get('original_dup__of_op__o_1c0__1')
         if novaOpcao2A and novaOpcao2A != "None" and novaOpcao2A != original_dup__of_op__o_1c0__1:
             summary_text += f"- Opção 2A foi alterada de {original_dup__of_op__o_1c0__1 or '-'} para {novaOpcao2A}\n"
             changes_found = True
-            
+
         original_dup__of_op__o_2c__1 = request.form.get('original_dup__of_op__o_2c__1')
         if novaOpcao3A and novaOpcao3A != "None" and novaOpcao3A != original_dup__of_op__o_2c__1:
             summary_text += f"- Opção 3A foi alterada de {original_dup__of_op__o_2c__1 or '-'} para {novaOpcao3A}\n"
             changes_found = True
-        
+
         # If no changes found, note that in the summary
         if not changes_found:
             summary_text += "Nenhuma alteração em data ou destino foi realizada."
-        
+
         # Get the additional messages from the textarea field
         mensagens = request.form.get('mensagens', '').strip()
-        
+
         # Create the complete content for texto_longo_17__1
         final_text = summary_text
-        
+
         # Add the mensagens if not empty
         if mensagens:
             final_text += "\n\nMensagens do comercial:\n" + mensagens
-        
+
         # Add file information if a file was provided
         if file and allowed_file(file.filename):
             final_text += f"\n\nArquivo anexado: {file.filename}"
-        
+
         # Add this content to the texto_longo_17__1 column (only if we have changes, messages, or a file)
         if changes_found or mensagens or (file and allowed_file(file.filename)):
             # Long text columns in Monday.com need a specific format with the "text" property
             column_values["texto_longo_17__1"] = {"text": final_text}
             logger.info(f"Generated content for texto_longo_17__1 column: {final_text}")
-        
+
         # Update the item in Monday.com
         logger.debug(f"Updating item with column values: {column_values}")
         update_result = update_monday_item(item_id, MONDAY_BOARD_ID, column_values, API_KEY, API_URL)
@@ -319,86 +337,86 @@ def submit_readequacao():
                 filename = secure_filename(planilha.filename)
                 temp_path = os.path.join('/tmp', filename)
                 planilha.save(temp_path)
-                
+
                 headers = {"Authorization": API_KEY, 'API-version':'2023-10'}
                 url = "https://api.monday.com/v2/file"
                 query = f'mutation add_file($file: File!) {{add_file_to_column (item_id: {item_id}, column_id: "arquivos22__1", file: $file) {{id}}}}'
-                
+
                 payload = {
                     'query': query,
                     'variables': '{}'
                 }
                 map_json = '{"variables.file": ["variables.file"]}'
                 payload['map'] = map_json
-                
+
                 with open(temp_path, 'rb') as file_handle:
                     file_content = file_handle.read()
                     files = {
                         'variables.file': (filename, file_content, 'application/octet-stream')
                     }
-                
+
                 response = requests.post(url, headers=headers, data=payload, files=files)
-                
+
                 if response.ok:
                     logger.info("Planilha uploaded successfully!")
                     flash("Planilha anexada com sucesso!", "success")
                 else:
                     logger.error(f"Planilha upload failed: {response.text}")
                     flash("Upload da planilha falhou", "warning")
-                
+
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
             # Handle file upload if file was provided
             if file and allowed_file(file.filename):
-                
+
                 filename = secure_filename(file.filename)
                 logger.info(f"Uploading file: {filename} to item: {item_id}")
                 # Use the same API_KEY that's already defined at the top of the file
                 try:
                     # Save file temporarily
-                    
+
                     temp_path = os.path.join('/tmp', filename)
                     file.save(temp_path)
                     print(f"File saved to: {temp_path}")
                     # First upload the file to Monday.com's file storage
                     headers = {"Authorization": API_KEY, 'API-version':'2023-10'}
                     url = "https://api.monday.com/v2/file"
-                    
+
                     # Format the payload according to the Monday.com API requirements
                     # The query uses the $file variable and specifies the column_id and item_id
                     query = f'mutation add_file($file: File!) {{add_file_to_column (item_id: {item_id}, column_id: "arquivos9__1", file: $file) {{id}}}}'
-                    
+
                     payload = {
                         'query': query,
                         'variables': '{}'
                     }
-                    
+
                     # The map is a JSON string that maps the file parameter in the request to the variable in the query
                     map_json = '{"variables.file": ["variables.file"]}'
                     payload['map'] = map_json
-                    
+
                     logger.info(f"Upload query: {query}")
                     logger.info(f"Upload payload: {payload}")
-                    
+
                     # Format the files parameter - use 'variables.file' as key to match the map
                     with open(temp_path, 'rb') as file_handle:
                         file_content = file_handle.read()
                         files = {
                             'variables.file': (filename, file_content, 'application/octet-stream')
                         }
-                    
+
                     # Make the API request with both payload and files parameters
                     response = requests.post(url, headers=headers, data=payload, files=files)
                     logger.info(f"Upload response status: {response.status_code}")                              
-                    
-                    
+
+
                     if response.ok:
                         try:
                             # Get the response data
                             response_data = response.json()
                             logger.info(f"Upload response: {response_data}")
-                            
+
                             # Check if we have a successful upload in the response
                             # Monday.com API typically returns data.add_file_to_column.id for successful uploads
                             if 'data' in response_data and 'add_file_to_column' in response_data['data']:
@@ -425,23 +443,87 @@ def submit_readequacao():
                     else:
                         logger.error(f"File upload failed: {response.text}")
                         flash("Upload do arquivo falhou", "warning")
-                        
+
                     # Clean up temporary file
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
-                        
+
                 except Exception as e:
                     logger.error(f"Erro no upload do arquivo: {str(e)}")
                     flash(f"Erro ao enviar arquivo: {str(e)}", "warning")
-                    
-            # Add success message and return response
-            flash("Dados atualizados com sucesso!", "success")
+
+            # Create item in the tracking board
+            new_board_id = 8914145280
+            # Get the original searched business number and responsible person
+            num_negocio = request.form.get('negocio')
+            if not num_negocio:  # Fallback to getting it from the form data
+                num_negocio = result_name.split('-')[0].strip() if result_name else "Unknown"
+
+            # Get and log the responsible person
+            responsavel_comercial = request.form.get('result_lista_suspensa3__1')
+            logger.info(f"Responsável Comercial: {responsavel_comercial}")
+
+            # Create new item mutation
+            create_item_query = """
+            mutation ($board_id: ID!, $group_id: String, $item_name: String!, $column_values: JSON!) {
+                create_item (
+                    board_id: $board_id, 
+                    group_id: $group_id, 
+                    item_name: $item_name,
+                    column_values: $column_values
+                ) {
+                    id
+                }
+            }
+            """
+
+            # Get client IP address
+            client_ip = request.remote_addr
+            if request.headers.get('X-Forwarded-For'):
+                client_ip = request.headers.get('X-Forwarded-For').split(',')[0]
+
+
+            # Format values for the new item
+            item_name = f"{num_negocio}"
+            column_values = {
+                "long_text_mkpxyghy": final_text,  # Summary of changes
+                "long_text_mkpxffnh": mensagens if mensagens else "",  # Messages
+                "text_mkpx7153": client_ip,  # IP address
+                "text_mkpxeg0n": responsavel_comercial  # Responsável comercial
+            }
+
+            variables = {
+                "board_id": new_board_id,
+                "group_id": "topics",  # Default group in Monday.com
+                "item_name": item_name,
+                "column_values": json.dumps(column_values, ensure_ascii=False)
+            }
+
+            try:
+                # Create new item in tracking board
+                logger.info(f"Creating tracking item with variables: {variables}")
+                tracking_response = get_monday_data(create_item_query, API_KEY, API_URL, variables)
+                logger.info(f"Tracking response: {tracking_response}")
+
+                if tracking_response and tracking_response.get('data', {}).get('create_item', {}).get('id'):
+                    tracking_item_id = tracking_response['data']['create_item']['id']
+                    logger.info(f"Created tracking item {tracking_item_id} for business number {num_negocio}")
+                    flash("Dados atualizados com sucesso!", "success")
+                else:
+                    error_msg = f"Failed to create tracking item. Response: {tracking_response}"
+                    logger.error(error_msg)
+                    flash("Dados atualizados, mas houve um erro ao criar o item de rastreamento", "warning")
+            except Exception as e:
+                logger.error(f"Error creating tracking item: {str(e)}")
+                flash("Dados atualizados, mas houve um erro ao criar o item de rastreamento", "warning")
+
+            # Return response regardless of tracking item creation
             return render_template('success.html', item_id=item_id, result_name=result_name)
         else:
             flash("Falha ao atualizar dados no Monday.com", "danger")
             logger.error("Failed to update item in Monday.com")
             return render_template('error.html', error="Falha ao atualizar dados no Monday.com")
-        
+
     except Exception as e:
         logger.error(f"Error in submit_readequacao: {str(e)}")
         flash(f"Erro ao processar o formulário: {str(e)}", "danger")
@@ -465,21 +547,21 @@ def datacadneg():
     if request.method == 'POST':
         try:
             data = request.get_json()
-            
+
             # Monday.com webhooks may send a challenge for verification
             if 'challenge' in data:
                 return jsonify({'challenge': data['challenge']})
-            
+
             # Get the pulse_id (item_id) from the webhook data
             event = data.get('event', {})
             pulse_id = event.get('pulseId')
-            
+
             if not pulse_id:
                 logger.error("No pulse_id found in webhook data")
                 return jsonify({"error": "No pulse_id found in webhook data"}), 400
-            
+
             logger.info(f"Received webhook for item ID: {pulse_id}")
-            
+
             # Query Monday.com API to get specifically the dup__of_avisos_____1 column value (MirrorValue type)
             query = """
             query ($item_id: [ID!]) {
@@ -495,28 +577,28 @@ def datacadneg():
             """
 
             variables = {"item_id": pulse_id}
-            
+
             try:
                 # Get the data from Monday.com using variables
                 monday_response = get_monday_data(query, API_KEY, API_URL, variables)
-                
+
                 # Print the response for debugging
                 logger.info(f"Monday.com response for dup__of_avisos_____1: {json.dumps(monday_response, indent=2)}")
-                
+
                 items = monday_response.get('data', {}).get('items', [])
-                
+
                 if not items:
                     error_msg = f"Item {pulse_id} not found on Monday.com. Verifique se o ID do item está correto e se você tem acesso a ele."
                     logger.error(error_msg)
                     return jsonify({"error": error_msg}), 404
-                
+
                 # Extract the date value from the dup__of_avisos_____1 column
                 date_value = None
                 column_values = items[0].get('column_values', [])
-                
+
                 if column_values:
                     column = column_values[0]  # Deve ter apenas uma coluna, a dup__of_avisos_____1
-                    
+
                     # Para MirrorValue, o valor está em display_value
                     if column.get('display_value'):
                         date_value = column.get('display_value')
@@ -533,28 +615,28 @@ def datacadneg():
                                 logger.info(f"Found date value in dup__of_avisos_____1 (value.date): {date_value}")
                         except Exception as e:
                             logger.error(f"Erro ao analisar valor JSON da coluna: {str(e)}")
-                
+
                 # Se não encontrou o valor, registre essa informação detalhada
                 if not date_value:
                     logger.info(f"Valor da coluna dup__of_avisos_____1 não encontrado ou vazio para o item {pulse_id}")
-                    
+
                     # Retorne uma resposta explicativa sem tentar buscar mais dados
                     return jsonify({
                         "message": "Webhook recebido e processado. A coluna 'dup__of_avisos_____1' está vazia, portanto não foi necessário atualizar a coluna 'date_mkpr7chx'.",
                         "item_id": pulse_id,
                         "status": "skipped"
                     }), 200
-                
+
                 # Calculate the new date (one day before)
                 new_date = None
                 from utils.date_formatter import subtract_one_day
                 new_date = subtract_one_day(date_value)
-                
+
                 if not new_date:
                     error_msg = f"Falha ao calcular nova data para o valor: {date_value}. Verifique se o formato da data é válido (YYYY-MM-DD)."
                     logger.error(error_msg)
                     return jsonify({"error": error_msg}), 400
-                
+
                 # Atualizar a coluna date_mkpr7chx diretamente usando uma mutação GraphQL
                 # Não usar o update_monday_item pois ele faz o duplo escape do JSON
                 mutation = """
@@ -568,21 +650,21 @@ def datacadneg():
                   }
                 }
                 """
-                
+
                 # Preparar variáveis para a mutação
                 variables = {
                     "item_id": pulse_id,
                     "board_id": 7383259135,
                     "column_values": json.dumps({"date_mkpr7chx": {"date": new_date}})
                 }
-                
+
                 try:
                     # Fazer a chamada para a API do Monday.com
                     monday_response = get_monday_data(mutation, API_KEY, API_URL, variables)
-                    
+
                     # Log da resposta para depuração
                     logger.info(f"Monday.com mutation response: {json.dumps(monday_response, indent=2)}")
-                    
+
                     # Verificar se a atualização foi bem-sucedida
                     if monday_response.get('data', {}).get('change_multiple_column_values', {}) is not None:
                         success_msg = f"Item {pulse_id} atualizado com sucesso. Nova data: {new_date}"
@@ -594,13 +676,13 @@ def datacadneg():
                         if 'errors' in monday_response:
                             for error in monday_response.get('errors', []):
                                 error_details += f" {error.get('message', '')}."
-                                
+
                                 # Verificar se há informações sobre a coluna específica
                                 if 'extensions' in error and 'error_data' in error['extensions']:
                                     error_data = error['extensions']['error_data']
                                     if 'column_id' in error_data:
                                         error_details += f" Coluna problemática: {error_data['column_id']}."
-                        
+
                         error_msg = f"Falha ao atualizar o item {pulse_id}.{error_details} Verifique se a coluna 'date_mkpr7chx' existe no quadro e se você tem permissões para atualizá-la."
                         logger.error(error_msg)
                         return jsonify({"error": error_msg}), 500
@@ -608,21 +690,21 @@ def datacadneg():
                     error_msg = f"Erro ao atualizar o item no Monday.com: {str(e)}"
                     logger.error(error_msg)
                     return jsonify({"error": error_msg}), 500
-                
+
             except Exception as e:
                 error_msg = f"Erro ao processar webhook: {str(e)}. Por favor, verifique os logs para mais detalhes."
                 logger.error(f"Error processing webhook: {str(e)}")
                 return jsonify({"error": error_msg}), 500
-                
+
         except Exception as e:
             error_msg = f"Erro ao analisar dados do webhook: {str(e)}. Verifique se o formato JSON está correto."
             logger.error(f"Error parsing webhook data: {str(e)}")
             return jsonify({"error": error_msg}), 400
-            
+
     elif request.method == 'GET':
         # Return a simple response for GET requests (testing purposes)
         return jsonify({"message": "The datacadneg webhook endpoint is working. Use POST for webhook data."}), 200
-    
+
     else:
         abort(400)
 
