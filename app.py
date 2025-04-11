@@ -314,9 +314,13 @@ def submit_readequacao():
         if mensagens:
             final_text += "\n\nMensagens do comercial:\n" + mensagens
 
-        # Add file information if a file was provided
+        # Add file information if files were provided
         if file and allowed_file(file.filename):
             final_text += f"\n\nArquivo anexado: {file.filename}"
+        
+        planilha = request.files.get('planilha')
+        if planilha and allowed_file(planilha.filename):
+            final_text += f"\n\nPlanilha de suporte anexada: {planilha.filename}"
 
         # Add this content to the texto_longo_17__1 column (only if we have changes, messages, or a file)
         if changes_found or mensagens or (file and allowed_file(file.filename)):
@@ -460,8 +464,36 @@ def submit_readequacao():
                 num_negocio = result_name.split('-')[0].strip() if result_name else "Unknown"
 
             # Get and log the responsible person
-            responsavel_comercial = request.form.get('result_lista_suspensa3__1')
-            logger.info(f"Responsável Comercial: {responsavel_comercial}")
+            responsavel_comercial = request.form.get('result_lista_suspensa3__1', '')
+            logger.info(f"Responsável Comercial (from form): {responsavel_comercial}")
+
+            # If empty, try to get from the original result
+            if not responsavel_comercial:
+                result_name = request.form.get('result_name')
+                query = """
+                query {
+                  items_page_by_column_values(
+                    limit: 1,
+                    board_id: %d,
+                    columns: [{ column_id: "texto__1", column_values: ["%s"] }]
+                  ) {
+                    items {
+                      column_values(ids: ["lista_suspensa3__1"]) {
+                        text
+                      }
+                    }
+                  }
+                }
+                """ % (MONDAY_BOARD_ID, request.form.get('negocio'))
+
+                try:
+                    monday_response = get_monday_data(query, API_KEY, API_URL)
+                    items = monday_response.get('data', {}).get('items_page_by_column_values', {}).get('items', [])
+                    if items and items[0].get('column_values'):
+                        responsavel_comercial = items[0]['column_values'][0].get('text', '')
+                        logger.info(f"Responsável Comercial (from query): {responsavel_comercial}")
+                except Exception as e:
+                    logger.error(f"Error getting responsible person: {str(e)}")
 
             # Create new item mutation
             create_item_query = """
