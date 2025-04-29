@@ -186,22 +186,34 @@ def submit_readequacao():
         column_values = {}
 
         # Convert dates from DD/MM/YYYY to YYYY-MM-DD format for Monday.com API
-        if novaDataEntregaAEREO and novaDataEntregaAEREO != "None":
+        # Handle AEREO date
+        if novaDataEntregaAEREO == "":
+            column_values["data__1"] = {"date": None}  # Clear the date
+        elif novaDataEntregaAEREO and novaDataEntregaAEREO != "None":
             data__1 = convert_date_to_monday_format(novaDataEntregaAEREO)
             if data__1:
                 column_values["data__1"] = {"date": data__1}
 
-        if novaDataEntregaTERRESTRE and novaDataEntregaTERRESTRE != "None":
+        # Handle TERRESTRE date
+        if novaDataEntregaTERRESTRE == "":
+            column_values["date9__1"] = {"date": None}  # Clear the date
+        elif novaDataEntregaTERRESTRE and novaDataEntregaTERRESTRE != "None":
             date9__1 = convert_date_to_monday_format(novaDataEntregaTERRESTRE)
             if date9__1:
                 column_values["date9__1"] = {"date": date9__1}
 
-        if novaDataEntregaCRIACAO and novaDataEntregaCRIACAO != "None":
+        # Handle CRIACAO date
+        if novaDataEntregaCRIACAO == "":
+            column_values["date3__1"] = {"date": None}  # Clear the date
+        elif novaDataEntregaCRIACAO and novaDataEntregaCRIACAO != "None":
             date3__1 = convert_date_to_monday_format(novaDataEntregaCRIACAO)
             if date3__1:
                 column_values["date3__1"] = {"date": date3__1}
 
-        if novaDataEntregaSALES and novaDataEntregaSALES != "None":
+        # Handle SALES date
+        if novaDataEntregaSALES == "":
+            column_values["date7__1"] = {"date": None}  # Clear the date
+        elif novaDataEntregaSALES and novaDataEntregaSALES != "None":
             date7__1 = convert_date_to_monday_format(novaDataEntregaSALES)
             if date7__1:
                 column_values["date7__1"] = {"date": date7__1}
@@ -317,7 +329,7 @@ def submit_readequacao():
         # Add file information if files were provided
         if file and allowed_file(file.filename):
             final_text += f"\n\nArquivo anexado: {file.filename}"
-        
+
         planilha = request.files.get('planilha')
         if planilha and allowed_file(planilha.filename):
             final_text += f"\n\nPlanilha de suporte anexada: {planilha.filename}"
