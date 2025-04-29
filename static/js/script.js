@@ -1,4 +1,84 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete date buttons
+    document.querySelectorAll('.delete-date').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const section = this.dataset.section;
+            const input = document.getElementById(targetId);
+            const overlay = this.closest('.form-group').querySelector('.delete-overlay');
+            const button = this;
+            const originalInput = button.closest('.card-body').querySelector('input[readonly]');
+            const originalDate = originalInput ? originalInput.value : '';
+            const fp = input._flatpickr;
+
+            const resumeId = 'resumo-' + targetId.replace('nova', '').toLowerCase();
+            const resumeElem = document.getElementById(resumeId);
+            const newValueElem = document.getElementById('nova-' + targetId.replace('nova', '').toLowerCase());
+
+            if (button.classList.contains('disabled')) {
+                // Reset button state
+                button.classList.remove('disabled');
+                overlay.classList.add('d-none');
+
+                // Keep calendar empty but restore original value internally
+                if (fp) {
+                    fp.clear();
+                }
+                input.value = originalDate || '';
+
+                // Reset summary
+                if (resumeElem) {
+                    resumeElem.style.display = 'none';
+                }
+                if (newValueElem) {
+                    newValueElem.textContent = '';
+                }
+                atualizarResumoMudancas();
+            } else {
+                // Click state - clear field and show banner
+                button.classList.add('disabled');
+                button.style.pointerEvents = 'auto';
+                button.style.cursor = 'pointer';
+                if (fp) {
+                    fp.clear(); // Clear the flatpickr instance
+                }
+                input.value = ''; // Clear the input value
+                overlay.classList.remove('d-none');
+                // Update summary to show field will be cleared
+                const resumeId = 'resumo-' + targetId.replace('nova', '').toLowerCase();
+                const resumeElem = document.getElementById(resumeId);
+                const newValueElem = document.getElementById('nova-' + targetId.replace('nova', '').toLowerCase());
+                if (resumeElem && newValueElem) {
+                    resumeElem.style.display = 'block';
+                    newValueElem.textContent = `Data ${section} será apagada`;
+                }
+            }
+
+            // Handler for calendar field changes
+            const inputHandler = function() {
+                if (input.value) {
+                    // If calendar field changes, unclick delete button
+                    overlay.classList.add('d-none');
+                    button.classList.remove('disabled');
+                    // Update summary to show new date
+                    const resumeId = 'resumo-' + targetId.replace('nova', '').toLowerCase();
+                    const resumeElem = document.getElementById(resumeId);
+                    const newValueElem = document.getElementById('nova-' + targetId.replace('nova', '').toLowerCase());
+                    if (resumeElem && newValueElem) {
+                        resumeElem.style.display = 'block';
+                        newValueElem.textContent = input.value;
+                    }
+                }
+            };
+
+            input.removeEventListener('input', inputHandler);
+            input.addEventListener('input', inputHandler);
+            if (fp) {
+                fp.config.onChange.push(inputHandler);
+            }
+        });
+    });
+
     // Initialize Flatpickr for date fields
     const flatpickrConfig = {
         dateFormat: "d/m/Y",
@@ -99,6 +179,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Insert alert at the top of the form
                 form.insertBefore(alertDiv, form.firstChild);
+            }
+        });
+    }
+
+    // Add form submission protection
+    const form2 = document.querySelector('form[action="/submit_readequacao"]');
+    if (form2) {
+        form2.addEventListener('submit', function() {
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+                const alertDiv = document.createElement('div');
+                alertDiv.classList.add('alert', 'alert-info', 'alert-dismissible', 'fade', 'show', 'mt-4', 'mb-4');
+                alertDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Aguarde! Readequação sendo processada. Este processo pode levar por volta de 1 minuto.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+                submitButton.parentElement.insertBefore(alertDiv, submitButton);
             }
         });
     }
@@ -218,27 +314,36 @@ const fields = {
     }
 };
 
-// Function to update the summary of changes
-function atualizarResumoMudancas() {
-    let hasChanges = false;
+        function atualizarResumoMudancas() {
+            let hasChanges = false;
 
-    // Process each field
-    Object.entries(fields).forEach(([fieldName, fieldInfo]) => {
-        const currentValue = getInputValue(fieldInfo.inputId);
-        const originalValue = getHiddenValue(fieldName);
-        const resumeElem = document.getElementById(fieldInfo.resumeId);
-        const newValueElem = document.getElementById(fieldInfo.newValueId);
+            // Process each field
+            Object.entries(fields).forEach(([fieldName, fieldInfo]) => {
+                const currentValue = getInputValue(fieldInfo.inputId);
+                const originalValue = getHiddenValue(fieldName);
+                const resumeElem = document.getElementById(fieldInfo.resumeId);
+                const newValueElem = document.getElementById(fieldInfo.newValueId);
 
-        if (!resumeElem || !newValueElem) return;
+                if (!resumeElem || !newValueElem) return;
 
-        if (currentValue && !isEmpty(currentValue) && currentValue !== originalValue) {
-            resumeElem.style.display = 'block';
-            newValueElem.textContent = currentValue;
-            hasChanges = true;
-        } else {
-            resumeElem.style.display = 'none';
-        }
-    });
+                const deleteButton = document.querySelector(`button[data-target="${fieldInfo.inputId}"]`);
+                const isDeleted = deleteButton && deleteButton.classList.contains('disabled');
+                const section = deleteButton ? deleteButton.dataset.section : ''; // Safely get section
+
+                if (isDeleted && originalValue && !isEmpty(originalValue)) {
+                    resumeElem.style.display = 'block';
+                    newValueElem.textContent = `Data ${section} será apagada`;
+                    hasChanges = true;
+                } else if (currentValue && !isEmpty(currentValue) && currentValue !== originalValue) {
+                    resumeElem.style.display = 'block';
+                    newValueElem.textContent = currentValue;
+                    hasChanges = true;
+                } else {
+                    resumeElem.style.display = 'none';
+                }
+            });
+
+
 
     // Update no changes message
     const semMudancas = document.getElementById('sem-mudancas');
