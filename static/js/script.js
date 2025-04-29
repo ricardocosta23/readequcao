@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
                 const alertDiv = document.createElement('div');
                 alertDiv.classList.add('alert', 'alert-info', 'alert-dismissible', 'fade', 'show', 'mt-4', 'mb-4');
-                alertDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Aguarde! Readequação sendo processada. Este processo pode levar por volta de 1 minuto.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-                submitButton.parentElement.insertBefore(alertDiv, submitButton);
+                alertDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Aguarde! Readequação sendo processada. Este processo pode levar por volta de 1 minuto.<br><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+                submitButton.parentElement.parentElement.insertAdjacentElement('afterend', alertDiv);
             }
         });
     }
