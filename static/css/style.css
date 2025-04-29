@@ -108,6 +108,42 @@ input[type="file"] {
 
 
 
+/* Delete date functionality */
+.delete-overlay {
+    margin-top: 5px;
+    padding: 4px;
+    background: rgba(108, 117, 125, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+    width: calc(50% - 19px); /* Half of the previous width */
+    margin-left: 0;
+}
+
+.delete-overlay span {
+    color: white;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    border: none; /* Remove border in the original state */
+}
+
+
+.btn-danger.disabled {
+    opacity: 0.5;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    border: none; /* Remove border */
+}
+
+.form-group {
+    position: relative;
+}
+
 /* Responsive improvements */
 @media (max-width: 768px) {
     .d-md-flex {
