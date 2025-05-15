@@ -218,42 +218,32 @@ def submit_readequacao():
             if date7__1:
                 column_values["date7__1"] = {"date": date7__1}
 
-        # Add text values to column_values only if they exist
-        if novaOpcao1A and novaOpcao1A != "None":
-            column_values["texto16__1"] = novaOpcao1A
+        # Handle location values (including deletions)
+        location_mappings = {
+            'novaOpcao1A': 'texto16__1',
+            'novaOpcao2A': 'dup__of_op__o_1c0__1',
+            'novaOpcao3A': 'dup__of_op__o_2c__1',
+            'novaOpcao4A': 'dup__of_op__o_3c9__1',
+            'novaOpcao1B': 'dup__of_op__o_1a__1',
+            'novaOpcao1C': 'text0__1',
+            'novaOpcao2B': 'dup__of_op__o_1c5__1',
+            'novaOpcao2C': 'dup__of_op__o_1c__1',
+            'novaOpcao3B': 'dup__of_op__o_3a__1',
+            'novaOpcao3C': 'dup__of_op__o_3b__1',
+            'novaOpcao4B': 'dup__of_op__o_3c4__1',
+            'novaOpcao4C': 'dup__of_op__o_3c__1'
+        }
 
-        if novaOpcao2A and novaOpcao2A != "None":
-            column_values["dup__of_op__o_1c0__1"] = novaOpcao2A
-
-        if novaOpcao3A and novaOpcao3A != "None":
-            column_values["dup__of_op__o_2c__1"] = novaOpcao3A
-
-        if novaOpcao4A and novaOpcao4A != "None":
-            column_values["dup__of_op__o_3c9__1"] = novaOpcao4A
-
-        if novaOpcao1B and novaOpcao1B != "None":
-            column_values["dup__of_op__o_1a__1"] = novaOpcao1B
-
-        if novaOpcao1C and novaOpcao1C != "None":
-            column_values["text0__1"] = novaOpcao1C
-
-        if novaOpcao2B and novaOpcao2B != "None":
-            column_values["dup__of_op__o_1c5__1"] = novaOpcao2B
-
-        if novaOpcao2C and novaOpcao2C != "None":
-            column_values["dup__of_op__o_1c__1"] = novaOpcao2C
-
-        if novaOpcao3B and novaOpcao3B != "None":
-            column_values["dup__of_op__o_3a__1"] = novaOpcao3B
-
-        if novaOpcao3C and novaOpcao3C != "None":
-            column_values["dup__of_op__o_3b__1"] = novaOpcao3C
-
-        if novaOpcao4B and novaOpcao4B != "None":
-            column_values["dup__of_op__o_3c4__1"] = novaOpcao4B
-
-        if novaOpcao4C and novaOpcao4C != "None":
-            column_values["dup__of_op__o_3c__1"] = novaOpcao4C
+        for field_name, monday_column in location_mappings.items():
+            field_value = request.form.get(field_name)
+            delete_flag = request.form.get(f'delete_{field_name}', 'false')
+            
+            if delete_flag == 'true':
+                # If marked for deletion, set the column value to empty
+                column_values[monday_column] = None
+            elif field_value and field_value != "None":
+                # If not deleted and has value, update normally
+                column_values[monday_column] = field_value
 
         # Generate a summary of changes for texto_longo_17__1 column
         summary_text = "Resumo das Mudanças:\n\n"
