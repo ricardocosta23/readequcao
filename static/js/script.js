@@ -1,4 +1,58 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete location buttons
+    document.querySelectorAll('.delete-location').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const input = document.getElementById(targetId);
+            const overlay = this.closest('.form-group').querySelector('.delete-overlay');
+            const button = this;
+            
+            if (button.classList.contains('disabled')) {
+                // Restore original value and make editable
+                input.value = input.dataset.originalValue || '';
+                input.removeAttribute('readonly');
+                overlay.classList.add('d-none');
+                button.classList.remove('disabled');
+                // Reset delete flag
+                document.getElementById('delete_' + targetId).value = 'false';
+                
+                // Update summary
+                const resumeId = 'resumo-' + targetId.toLowerCase();
+                const resumeElem = document.getElementById(resumeId);
+                if (resumeElem) {
+                    resumeElem.style.display = 'none';
+                }
+            } else {
+                // Store original value and make field uneditable
+                input.dataset.originalValue = input.value;
+                const originalValue = input.value;
+                input.value = '';
+                input.setAttribute('readonly', true);
+                
+                // Update button and overlay state
+                button.classList.add('disabled');
+                overlay.classList.remove('d-none');
+                // Set delete flag
+                document.getElementById('delete_' + targetId).value = 'true';
+                
+                // Update summary
+                const fieldKey = Object.entries(fields).find(([_, field]) => field.inputId === targetId)?.[0];
+                const resumeId = fieldKey ? `resumo-${fieldKey}` : 'resumo-' + targetId.toLowerCase();
+                const resumeElem = document.getElementById(resumeId);
+                if (resumeElem) {
+                    resumeElem.style.display = 'block';
+                    const newValueElem = document.getElementById('nova-' + fieldKey);
+                    if (newValueElem) {
+                        newValueElem.textContent = 'Apagada';
+                    }
+                }
+            }
+            
+            // Update changes status
+            atualizarResumoMudancas();
+        });
+    });
+
     // Handle delete date buttons
     document.querySelectorAll('.delete-date').forEach(button => {
         button.addEventListener('click', function() {
@@ -324,17 +378,23 @@ const fields = {
                 const resumeElem = document.getElementById(fieldInfo.resumeId);
                 const newValueElem = document.getElementById(fieldInfo.newValueId);
 
-                if (!resumeElem || !newValueElem) return;
+                if (!resumeElem || !newValueElem) {
+                    console.log(`Missing elements for field ${fieldName}`, {resumeId: fieldInfo.resumeId, newValueId: fieldInfo.newValueId});
+                    return;
+                }
 
                 const deleteButton = document.querySelector(`button[data-target="${fieldInfo.inputId}"]`);
                 const isDeleted = deleteButton && deleteButton.classList.contains('disabled');
-                const section = deleteButton ? deleteButton.dataset.section : ''; // Safely get section
 
-                if (isDeleted && originalValue && !isEmpty(originalValue)) {
+                // Get the original input element to get its current value
+                const originalInput = document.querySelector(`input[value="${originalValue}"]`);
+                const displayOriginalValue = originalInput ? originalInput.value : originalValue;
+
+                if (isDeleted) {
                     resumeElem.style.display = 'block';
-                    newValueElem.textContent = `Data ${section} será apagada`;
+                    newValueElem.textContent = 'Apagada';
                     hasChanges = true;
-                } else if (currentValue && !isEmpty(currentValue) && currentValue !== originalValue) {
+                } else if (currentValue && !isEmpty(currentValue) && currentValue !== displayOriginalValue) {
                     resumeElem.style.display = 'block';
                     newValueElem.textContent = currentValue;
                     hasChanges = true;
