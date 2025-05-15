@@ -1,6 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Function to update placeholder based on current state
+    function updatePlaceholder(input, button, originalValue) {
+        if (button.classList.contains('disabled')) {
+            input.placeholder = '';
+        } else if (originalValue && originalValue.trim() !== '' && originalValue !== 'None') {
+            input.placeholder = 'Destino atual será mantido';
+        } else {
+            input.placeholder = '';
+        }
+    }
+
     // Handle delete location buttons
     document.querySelectorAll('.delete-location').forEach(button => {
+        const targetId = button.dataset.target;
+        const input = document.getElementById(targetId);
+        const currentValueInput = button.closest('.row').querySelector('input[readonly]');
+        const originalValue = currentValueInput ? currentValueInput.value : '';
+        
+        // Set initial placeholder
+        updatePlaceholder(input, button, originalValue);
+
         button.addEventListener('click', function() {
             const targetId = this.dataset.target;
             const input = document.getElementById(targetId);
@@ -15,6 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 button.classList.remove('disabled');
                 // Reset delete flag
                 document.getElementById('delete_' + targetId).value = 'false';
+                // Restore placeholder
+                const currentValueInput = button.closest('.row').querySelector('input[readonly]');
+                const currentValue = currentValueInput ? currentValueInput.value : '';
+                updatePlaceholder(input, button, currentValue);
                 
                 // Update summary
                 const resumeId = 'resumo-' + targetId.toLowerCase();
@@ -34,6 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 overlay.classList.remove('d-none');
                 // Set delete flag
                 document.getElementById('delete_' + targetId).value = 'true';
+                
+                // Update placeholder
+                const currentValueInput = button.closest('.row').querySelector('input[readonly]');
+                const currentValue = currentValueInput ? currentValueInput.value : '';
+                updatePlaceholder(input, button, currentValue);
                 
                 // Update summary
                 const fieldKey = Object.entries(fields).find(([_, field]) => field.inputId === targetId)?.[0];
