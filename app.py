@@ -209,6 +209,12 @@ def submit_readequacao():
             date3__1 = convert_date_to_monday_format(novaDataEntregaCRIACAO)
             if date3__1:
                 column_values["date3__1"] = {"date": date3__1}
+                
+                # Check if the original CRIACAO date was empty and now it's being filled
+                original_date3__1 = request.form.get('original_date3__1', '').strip()
+                if not original_date3__1 or original_date3__1 in ['', 'None', '""']:
+                    # Original date was empty, now it's filled - set color column
+                    column_values["color_mkrzt1f0"] = "Gerar novo criação"
 
         # Handle SALES date
         if novaDataEntregaSALES == "":
@@ -380,12 +386,36 @@ def submit_readequacao():
                 logger.info(f"Uploading file: {filename} to item: {item_id}")
                 # Use the same API_KEY that's already defined at the top of the file
                 try:
+                    # First clear the existing files in the arquivos9__1 column
+                    clear_mutation = f"""
+                    mutation {{
+                      change_column_value(
+                        board_id: {MONDAY_BOARD_ID}, 
+                        item_id: {item_id}, 
+                        column_id: "arquivos9__1", 
+                        value: "{{\\"clear_all\\": true}}"
+                      ) {{
+                        id
+                      }}
+                    }}
+                    """
+                    
+                    headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
+                    clear_payload = {'query': clear_mutation}
+                    
+                    # Execute the clear mutation
+                    clear_response = requests.post(url=API_URL, json=clear_payload, headers=headers)
+                    if clear_response.ok:
+                        logger.info(f"Successfully cleared arquivos9__1 column for item {item_id}")
+                    else:
+                        logger.warning(f"Failed to clear arquivos9__1 column: {clear_response.text}")
+                    
+                    # Now proceed with file upload
                     # Save file temporarily
-
                     temp_path = os.path.join('/tmp', filename)
                     file.save(temp_path)
                     print(f"File saved to: {temp_path}")
-                    # First upload the file to Monday.com's file storage
+                    # Upload the file to Monday.com's file storage
                     headers = {"Authorization": API_KEY, 'API-version':'2023-10'}
                     url = "https://api.monday.com/v2/file"
 
