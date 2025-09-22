@@ -321,13 +321,13 @@ const fields = {
     },
     'date9__1': {
         inputId: 'novaDataEntregaTERRESTRE',
-        resumeId: 'resumo-date3__1',
-        newValueId: 'nova-date3__1'
+        resumeId: 'resumo-date9__1',
+        newValueId: 'nova-date9__1'
     },
     'date3__1': {
         inputId: 'novaDataEntregaCRIACAO',
-        resumeId: 'resumo-date9__1',
-        newValueId: 'nova-date9__1'
+        resumeId: 'resumo-date3__1',
+        newValueId: 'nova-date3__1'
     },
     'date7__1': {
         inputId: 'novaDataEntregaSALES',
