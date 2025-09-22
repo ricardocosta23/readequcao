@@ -319,12 +319,12 @@ const fields = {
         resumeId: 'resumo-data__1',
         newValueId: 'nova-data__1'
     },
-    'date3__1': {
+    'date9__1': {
         inputId: 'novaDataEntregaTERRESTRE',
         resumeId: 'resumo-date3__1',
         newValueId: 'nova-date3__1'
     },
-    'date9__1': {
+    'date3__1': {
         inputId: 'novaDataEntregaCRIACAO',
         resumeId: 'resumo-date9__1',
         newValueId: 'nova-date9__1'
