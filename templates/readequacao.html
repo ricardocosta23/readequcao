@@ -93,6 +93,7 @@
                                             <button type="button" class="btn btn-danger delete-date" data-target="novaDataEntregaAEREO" data-section="AÉREO">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
+                                            <input type="hidden" name="delete_novaDataEntregaAEREO" value="false" id="delete_novaDataEntregaAEREO">
                                         </div>
                                         <div class="delete-overlay d-none">
                                             <span>Data será apagada</span>
@@ -115,7 +116,6 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Data de Entrega Atual</label>
-                                        <input type="hidden" name="original_date9__1" value="{{ result.date9__1|replace_none }}">
                                         <input type="text" class="form-control" value="{{ result.date9__1|replace_none }}" readonly>
                                     </div>
                                 </div>
@@ -128,6 +128,7 @@
                                             <button type="button" class="btn btn-danger delete-date" data-target="novaDataEntregaTERRESTRE" data-section="TERRESTRE">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
+                                            <input type="hidden" name="delete_novaDataEntregaTERRESTRE" value="false" id="delete_novaDataEntregaTERRESTRE">
                                         </div>
                                         <div class="delete-overlay d-none">
                                             <span>Data será apagada</span>
@@ -150,7 +151,6 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Data de Entrega Atual</label>
-                                        <input type="hidden" name="original_date3__1" value="{{ result.date3__1|replace_none }}">
                                         <input type="text" class="form-control" value="{{ result.date3__1|replace_none }}" readonly>
                                     </div>
                                 </div>
@@ -163,6 +163,7 @@
                                             <button type="button" class="btn btn-danger delete-date" data-target="novaDataEntregaCRIACAO" data-section="CRIAÇÃO">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
+                                            <input type="hidden" name="delete_novaDataEntregaCRIACAO" value="false" id="delete_novaDataEntregaCRIACAO">
                                         </div>
                                         <div class="delete-overlay d-none">
                                             <span>Data será apagada</span>
@@ -197,6 +198,7 @@
                                             <button type="button" class="btn btn-danger delete-date" data-target="novaDataEntregaSALES" data-section="SALES">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
+                                            <input type="hidden" name="delete_novaDataEntregaSALES" value="false" id="delete_novaDataEntregaSALES">
                                         </div>
                                         <div class="delete-overlay d-none">
                                             <span>Data será apagada</span>
