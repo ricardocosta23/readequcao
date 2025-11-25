@@ -108,6 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 input.value = originalDate || '';
 
+                // Reset delete flag
+                document.getElementById('delete_' + targetId).value = 'false';
+
                 // Reset summary
                 if (resumeElem) {
                     resumeElem.style.display = 'none';
@@ -126,6 +129,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 input.value = ''; // Clear the input value
                 overlay.classList.remove('d-none');
+                
+                // Set delete flag
+                document.getElementById('delete_' + targetId).value = 'true';
+                
                 // Update summary to show field will be cleared
                 const resumeId = 'resumo-' + targetId.replace('nova', '').toLowerCase();
                 const resumeElem = document.getElementById(resumeId);
@@ -142,6 +149,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If calendar field changes, unclick delete button
                     overlay.classList.add('d-none');
                     button.classList.remove('disabled');
+                    // Reset delete flag
+                    document.getElementById('delete_' + targetId).value = 'false';
                     // Update summary to show new date
                     const resumeId = 'resumo-' + targetId.replace('nova', '').toLowerCase();
                     const resumeElem = document.getElementById(resumeId);
