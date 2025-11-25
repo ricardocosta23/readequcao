@@ -187,7 +187,8 @@ def submit_readequacao():
 
         # Convert dates from DD/MM/YYYY to YYYY-MM-DD format for Monday.com API
         # Handle AEREO date
-        if novaDataEntregaAEREO == "":
+        delete_aereo = request.form.get('delete_novaDataEntregaAEREO', 'false')
+        if delete_aereo == 'true':
             column_values["data__1"] = {"date": None}  # Clear the date
         elif novaDataEntregaAEREO and novaDataEntregaAEREO != "None":
             data__1 = convert_date_to_monday_format(novaDataEntregaAEREO)
@@ -195,7 +196,8 @@ def submit_readequacao():
                 column_values["data__1"] = {"date": data__1}
 
         # Handle TERRESTRE date
-        if novaDataEntregaTERRESTRE == "":
+        delete_terrestre = request.form.get('delete_novaDataEntregaTERRESTRE', 'false')
+        if delete_terrestre == 'true':
             column_values["date9__1"] = {"date": None}  # Clear the date
         elif novaDataEntregaTERRESTRE and novaDataEntregaTERRESTRE != "None":
             date9__1 = convert_date_to_monday_format(novaDataEntregaTERRESTRE)
@@ -203,7 +205,8 @@ def submit_readequacao():
                 column_values["date9__1"] = {"date": date9__1}
 
         # Handle CRIACAO date
-        if novaDataEntregaCRIACAO == "":
+        delete_criacao = request.form.get('delete_novaDataEntregaCRIACAO', 'false')
+        if delete_criacao == 'true':
             column_values["date3__1"] = {"date": None}  # Clear the date
         elif novaDataEntregaCRIACAO and novaDataEntregaCRIACAO != "None":
             date3__1 = convert_date_to_monday_format(novaDataEntregaCRIACAO)
@@ -217,7 +220,8 @@ def submit_readequacao():
                     column_values["color_mkrzt1f0"] = "Gerar novo criação"
 
         # Handle SALES date
-        if novaDataEntregaSALES == "":
+        delete_sales = request.form.get('delete_novaDataEntregaSALES', 'false')
+        if delete_sales == 'true':
             column_values["date7__1"] = {"date": None}  # Clear the date
         elif novaDataEntregaSALES and novaDataEntregaSALES != "None":
             date7__1 = convert_date_to_monday_format(novaDataEntregaSALES)
